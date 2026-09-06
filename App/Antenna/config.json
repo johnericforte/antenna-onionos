@@ -1,0 +1,6 @@
+{
+  "label": "Antenna",
+  "icon": "icon.png",
+  "launch": "launch.sh",
+  "description": "Stream video from any wired-in provider"
+}

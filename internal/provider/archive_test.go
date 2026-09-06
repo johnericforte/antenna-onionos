@@ -129,15 +129,18 @@ func TestBrowseUndecodableItemIsEmptyNotAnError(t *testing.T) {
 	}
 }
 
-func TestBrowseMissingItemIsEmptyNotAnError(t *testing.T) {
+// archive.org answers 200 with {} for an identifier that is gone. Reporting
+// that as an empty item makes a dead configuration look like a device that
+// cannot decode anything, which sends the user to the wrong problem.
+func TestBrowseMissingItemIsAnError(t *testing.T) {
 	a := testArchive(t)
 
-	entries, err := a.Browse(context.Background(), itemEmpty)
-	if err != nil {
-		t.Fatalf("a missing item must not error: %v", err)
+	_, err := a.Browse(context.Background(), itemEmpty)
+	if err == nil {
+		t.Fatal("an identifier that no longer exists should be reported")
 	}
-	if len(entries) != 0 {
-		t.Fatalf("got %d entries, want none", len(entries))
+	if !strings.Contains(err.Error(), "no files") {
+		t.Errorf("error should say the item is empty, got %q", err)
 	}
 }
 

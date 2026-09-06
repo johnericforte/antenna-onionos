@@ -108,7 +108,11 @@ func playableStream() *provider.Stream {
 	}
 }
 
-func TestPlayHandsTheResolvedURLToThePlayer(t *testing.T) {
+// The player must never be handed the https URL. The ffplay OnionOS ships has
+// no TLS: given https it prints "Protocol not found" and exits with status
+// zero, so the video silently does not play. Everything goes through the
+// loopback relay instead.
+func TestPlayHandsThePlayerALoopbackURL(t *testing.T) {
 	source := &fakeSource{
 		entries: []provider.Entry{{ID: "item/a.mp4", Title: "A Coy Decoy"}},
 		stream:  playableStream(),
@@ -121,8 +125,11 @@ func TestPlayHandsTheResolvedURLToThePlayer(t *testing.T) {
 	if video.calls != 1 {
 		t.Fatalf("player called %d times, want 1", video.calls)
 	}
-	if video.url != "https://example.invalid/v.mp4" {
-		t.Errorf("played %q", video.url)
+	if strings.HasPrefix(video.url, "https://") {
+		t.Errorf("played %q, which this ffplay cannot open", video.url)
+	}
+	if !strings.HasPrefix(video.url, "http://127.0.0.1:") {
+		t.Errorf("played %q, want a loopback address", video.url)
 	}
 	if a.notice != "" {
 		t.Errorf("a clean playback left %q on screen", a.notice)

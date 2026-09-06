@@ -29,6 +29,14 @@ trap 'exit 130' 1 2 15
 # Stop Onion from sleeping while the user is browsing.
 touch /tmp/stay_awake
 
+# Tracing. Off for a release: the log then carries failures only, which is what
+# a user has to send when something goes wrong. Set this to 1 to record every
+# step instead, including the ffplay command line and whatever ffplay printed.
+# A debug file next to this script turns it on without editing anything.
+ANTENNA_DEBUG=0
+[ -f "$appdir/debug" ] && ANTENNA_DEBUG=1
+export ANTENNA_DEBUG
+
 # archive.org forces TLS on every path, so all three of these matter.
 #
 # Some Miyoo images ship without a usable system CA store, so carry our own.

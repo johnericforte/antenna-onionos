@@ -1,5 +1,9 @@
 # Build output
 /App/Antenna/antenna
+
+# Local tracing switch. Its presence turns the trace log on, so it must never
+# reach a release: launch.sh looks for this file and sets ANTENNA_DEBUG=1.
+/App/Antenna/debug
 /Antenna.zip
 *.zip
 

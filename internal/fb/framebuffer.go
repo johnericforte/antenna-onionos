@@ -15,7 +15,21 @@ import (
 
 const (
 	// FBIOGET_VSCREENINFO returns the variable screen geometry.
+	//
+	// This is a legacy ioctl: the request number carries no size, so the
+	// kernel writes the whole struct however small the buffer is. The buffer
+	// has to be the size of the struct, not the size of the part we read.
 	fbioGetVScreenInfo = 0x4600
+
+	// varScreenInfoWords is sizeof(struct fb_var_screeninfo) in 32-bit words.
+	// From linux/fb.h: six resolution and offset fields, bits_per_pixel and
+	// grayscale, four fb_bitfield triples, five flag and size fields, eleven
+	// timing fields, and four reserved. 40 words, 160 bytes.
+	//
+	// Undersizing this smashes the goroutine stack. It cost a crash on device
+	// that the runtime could not even unwind, so if this struct ever grows,
+	// grow it here.
+	varScreenInfoWords = 40
 
 	defaultWidth  = 640
 	defaultHeight = 480
@@ -69,10 +83,11 @@ func Open() (*Framebuffer, error) {
 	}, nil
 }
 
-// queryGeometry reads xres and yres from fb_var_screeninfo. Those are the
-// first two uint32 fields of the struct, so we only need to read that far.
+// queryGeometry reads xres and yres, the first two uint32 fields of
+// fb_var_screeninfo. The buffer still has to hold the entire struct, because
+// the kernel fills all of it.
 func queryGeometry(f *os.File) (int, int) {
-	var info [8]uint32
+	var info [varScreenInfoWords]uint32
 	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, f.Fd(),
 		fbioGetVScreenInfo, uintptr(unsafe.Pointer(&info[0])))
 	if errno != 0 || info[0] == 0 || info[1] == 0 {

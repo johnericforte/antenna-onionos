@@ -13,18 +13,21 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 	"unicode"
 
+	"antenna/internal/config"
+	"antenna/internal/dbg"
 	"antenna/internal/fb"
 	"antenna/internal/input"
 	"antenna/internal/player"
 	"antenna/internal/provider"
+	"antenna/internal/relay"
 )
 
 const (
@@ -49,10 +52,13 @@ var (
 	colorDivider    = fb.RGB(44, 44, 54)
 )
 
-// defaultItems is the shipped provider configuration. These three archive.org
-// items were measured on 2026-09-06: the first has an h.264 derivative on every
-// title, the other two are majority undecodable and exist here so the skip path
-// is exercised in the real app, not only in tests.
+// appDir is where OnionOS installs the app, and where the item list lives.
+const appDir = "/mnt/SDCARD/App/Antenna"
+
+// defaultItems is what the app browses when the card carries no item list.
+// These three archive.org items were measured on 2026-09-06: the first has an
+// h.264 derivative on every title, the other two are majority undecodable and
+// exist here so the skip path is exercised in the real app, not only in tests.
 var defaultItems = []provider.Item{
 	{ID: "classic_cartoons_201603", Title: "Classic Cartoons"},
 	{ID: "disneycartoons-publicdomain", Title: "Disney Public Domain"},
@@ -115,11 +121,11 @@ type app struct {
 }
 
 func main() {
-	// launch.sh points stderr at antenna.log on the card. Timestamps matter
-	// there: without them the log cannot say whether something failed at
-	// startup or an hour in.
-	log.SetOutput(os.Stderr)
-	log.SetFlags(log.LstdFlags)
+	// launch.sh points stderr at antenna.log on the card, which is the only
+	// place a handheld can report anything after the fact.
+	if dbg.Init() {
+		dbg.Printf("antenna: tracing on, set %s=0 to quiet it", dbg.EnvVar)
+	}
 
 	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "antenna: %v\n", err)
@@ -146,10 +152,23 @@ func run() error {
 	quit, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	items, itemsErr := config.Load(filepath.Join(appDir, config.FileName))
+	switch {
+	case itemsErr != nil:
+		// The user edited the list and got it wrong. Browsing the defaults
+		// instead would hide that, so say so and browse nothing.
+		dbg.Fail("config: %v", itemsErr)
+	case items == nil:
+		dbg.Printf("config: no %s, using the %d shipped items", config.FileName, len(defaultItems))
+		items = defaultItems
+	default:
+		dbg.Printf("config: %d items from %s", len(items), config.FileName)
+	}
+
 	listHeight := screen.Height() - headerHeight - footerHeight
 	a := &app{
 		screen:  screen,
-		source:  provider.NewArchive(defaultItems),
+		source:  provider.NewArchive(items),
 		video:   player.New(),
 		buttons: buttons,
 		quit:    quit,
@@ -158,9 +177,20 @@ func run() error {
 	}
 	a.render()
 
-	ctx, cancel := context.WithTimeout(quit, loadTimeout)
-	a.load(ctx)
-	cancel()
+	dbg.Printf("antenna: screen %dx%d, %d rows", screen.Width(), screen.Height(), a.rows)
+
+	// A rejected item list is shown and then the app keeps running, so B still
+	// exits and the user can read the reason before going to fix the file.
+	if itemsErr != nil {
+		a.status = a.forScreen(itemsErr)
+	} else {
+		ctx, cancel := context.WithTimeout(quit, loadTimeout)
+		loadStart := time.Now()
+		a.load(ctx)
+		cancel()
+		dbg.Printf("antenna: loaded %d titles in %s, status=%q notice=%q",
+			len(a.entries), time.Since(loadStart).Round(time.Millisecond), a.status, a.notice)
+	}
 
 	a.render()
 
@@ -177,6 +207,7 @@ func run() error {
 			if !ev.Pressed {
 				continue
 			}
+			dbg.Printf("input: button %d pressed", ev.Button)
 			switch ev.Button {
 			case input.Up:
 				a.move(-1)
@@ -211,7 +242,7 @@ func (a *app) load(ctx context.Context) {
 
 	roots, err := a.source.Browse(ctx, "")
 	if err != nil {
-		log.Printf("browse root: %v", err)
+		dbg.Fail("browse root: %v", err)
 		a.status = a.forScreen(err)
 		return
 	}
@@ -224,7 +255,7 @@ func (a *app) load(ctx context.Context) {
 			// The text is the only thing separating a dead identifier from an
 			// expired certificate from a real network fault, and all three
 			// would otherwise be reported as bad Wi-Fi.
-			log.Printf("browse %s: %v", root.ID, err)
+			dbg.Fail("browse %s: %v", root.ID, err)
 			failures++
 			failed = err
 			continue
@@ -258,21 +289,28 @@ func (a *app) play() {
 		return
 	}
 	entry := a.entries[a.selected]
+	dbg.Printf("play: selected %d/%d id=%q title=%q", a.selected+1, len(a.entries), entry.ID, entry.Title)
 
 	// Resolving needs a network round trip, so say something first.
 	a.notice = "Opening " + entry.Title
 	a.render()
 
 	ctx, cancel := context.WithTimeout(a.quit, resolveTimeout)
+	started := time.Now()
 	stream, err := a.source.Resolve(ctx, entry.ID)
 	cancel()
+	dbg.Printf("play: resolve took %s", time.Since(started).Round(time.Millisecond))
 	if err != nil {
-		log.Printf("resolve %s: %v", entry.ID, err)
+		dbg.Fail("resolve %s: %v", entry.ID, err)
 		a.notice = a.forScreen(err)
 		return
 	}
+	dbg.Printf("play: stream %s %s %dx%d %d bps url=%s",
+		stream.Kind, stream.Codec, stream.Width, stream.Height, stream.Bitrate, stream.URL)
+
 	if playable, reason := stream.Playable(); !playable {
 		// Playable writes its reasons for the screen already.
+		dbg.Fail("play: refused: %s", reason)
 		a.notice = reason
 		return
 	}
@@ -284,9 +322,24 @@ func (a *app) play() {
 	// only stall the footer message.
 	defer a.buttons.Drain(drainQuiet)
 
+	// The ffplay OnionOS ships has no TLS, and archive.org is https only, so
+	// the stream is fetched here and served to the player over loopback.
+	feed, err := relay.Start(stream.URL)
+	if err != nil {
+		dbg.Fail("play: relay: %v", err)
+		a.notice = a.forScreen(err)
+		return
+	}
+	defer func() {
+		if err := feed.Close(); err != nil {
+			dbg.Fail("play: closing relay: %v", err)
+		}
+	}()
+
 	// No timeout. A feature runs as long as it runs, and only Onion asking the
 	// app to quit stops it early.
-	if err := a.video.Play(a.quit, stream.URL); err != nil {
+	dbg.Printf("play: handing off to the player at %s", feed.URL())
+	if err := a.video.Play(a.quit, feed.URL()); err != nil {
 		// A cancelled context means the app is shutting down, so ffplay dying
 		// is the intended outcome rather than something to report.
 		if a.quit.Err() == nil {
@@ -294,8 +347,18 @@ func (a *app) play() {
 		}
 	}
 
+	// A relay failure explains a player failure, and it is more specific.
+	if err := feed.Err(); err != nil {
+		dbg.Fail("play: relay reported %v", err)
+		if a.notice == "" {
+			a.notice = a.forScreen(err)
+		}
+	}
+
+	dbg.Printf("play: back from the player, notice=%q", a.notice)
+
 	if a.screen.GeometryChanged() {
-		log.Print("framebuffer geometry changed during playback")
+		dbg.Fail("framebuffer geometry changed during playback")
 		a.notice = "Screen mode changed. Restart Antenna."
 	}
 }

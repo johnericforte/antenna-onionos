@@ -1,0 +1,18 @@
+# Antenna item list.
+#
+# One archive.org item per line: the identifier, then a space, then the name
+# you want on screen. The name is optional, and the order here is the order in
+# the app.
+#
+# The identifier is the last part of an archive.org details URL. For
+# https://archive.org/details/classic_cartoons_201603 it is
+# classic_cartoons_201603
+#
+# An item is a folder of videos, not a single video. Antenna lists every title
+# inside it that this device can decode, and quietly skips the rest.
+#
+# Delete this file to go back to the built-in list.
+
+classic_cartoons_201603 Classic Cartoons
+disneycartoons-publicdomain Disney Public Domain
+pdcartooncollection Public Domain Cartoons

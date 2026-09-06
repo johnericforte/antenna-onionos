@@ -1,0 +1,66 @@
+# golangci-lint v2 configuration.
+#
+# Aim: catch real defects and dead code, stay quiet about style opinions that
+# gofmt already settles. A linter that cries wolf gets disabled, so anything
+# noisy is excluded here rather than ignored in code.
+version: "2"
+
+run:
+  timeout: 3m
+
+linters:
+  # The standard set is errcheck, govet, ineffassign, staticcheck, unused.
+  default: standard
+  enable:
+    - revive
+    - misspell
+    - gocritic
+    - bodyclose
+    - nilerr
+    - errorlint
+
+  settings:
+    revive:
+      rules:
+        - name: exported
+          # Exported identifiers need doc comments; this is a public repo.
+          severity: warning
+        - name: indent-error-flow
+        - name: unreachable-code
+        - name: redefines-builtin-id
+
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+
+    misspell:
+      # No locale: Go's own vocabulary is US-spelled (image/color), so
+      # enforcing a dialect flags correct identifiers. Real typos still fail.
+      ignore-rules:
+        - antenna
+
+  exclusions:
+    generated: lax
+    rules:
+      # Tests may ignore errors that production code must not.
+      - path: _test\.go
+        linters:
+          - errcheck
+      # Deferred teardown in main: if closing the framebuffer or the input
+      # device fails while the process is already exiting, there is no
+      # recovery available and nowhere useful to report it.
+      - path: ^main\.go$
+        text: "Error return value of .*\\.Close. is not checked"
+        linters:
+          - errcheck
+      # Framebuffer teardown is best-effort: if munmap or close fails during
+      # shutdown there is nothing useful left to do about it.
+      - path: internal/fb/framebuffer\.go
+        text: "Error return value of .*(Munmap|Close). is not checked"
+        linters:
+          - errcheck
+
+formatters:
+  enable:
+    - gofmt

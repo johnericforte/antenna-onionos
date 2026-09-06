@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # Go modules are deliberately absent -- this project is stdlib-only, so
+  # there is nothing for the gomod ecosystem to update. Actions still drift.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"

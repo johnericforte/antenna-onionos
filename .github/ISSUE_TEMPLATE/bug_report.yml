@@ -1,0 +1,67 @@
+name: Bug report
+description: Something misbehaves on device
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Device details matter more than usual here: this app talks straight to
+        the framebuffer and the evdev input node, so behaviour varies with
+        hardware revision and OnionOS version.
+
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: Miyoo Mini Plus
+    validations:
+      required: true
+
+  - type: input
+    id: onion
+    attributes:
+      label: OnionOS version
+      placeholder: e.g. 4.3.1-1
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Antenna version
+      placeholder: e.g. v0.1.0, or a commit hash
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Antenna from the Apps list
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log excerpt
+      description: >
+        From /mnt/SDCARD/App/Antenna/antenna.log. Paste the last ~40
+        lines. No need to redact -- the app logs no personal data.
+      render: text

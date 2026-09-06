@@ -1,0 +1,19 @@
+# Normalise line endings in the repo. Without this, a clone on Windows or a
+# misconfigured editor can rewrite launch.sh with CRLF, and the Miyoo's shell
+# then fails to execute it with no useful error. This is not a style
+# preference -- it is what keeps the app launching on device.
+* text=auto eol=lf
+
+*.sh   text eol=lf
+*.go   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+Makefile text eol=lf
+
+*.png binary
+*.zip binary
+
+# Keep generated/vendored noise out of language stats and diffs.
+*.md linguist-documentation

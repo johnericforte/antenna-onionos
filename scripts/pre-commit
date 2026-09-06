@@ -1,0 +1,27 @@
+#!/bin/sh
+# Pre-commit hook: catch formatting and vet failures before CI does.
+# Install with: make hooks
+set -eu
+
+GO=${GO:-$(command -v go 2>/dev/null || echo "$HOME/.local/go/bin/go")}
+if [ ! -x "$GO" ] && ! command -v "$GO" >/dev/null 2>&1; then
+    echo "pre-commit: no Go toolchain found; skipping checks" >&2
+    exit 0
+fi
+
+GOFMT=${GOFMT:-$(command -v gofmt 2>/dev/null || echo "$(dirname "$GO")/gofmt")}
+
+unformatted=$("$GOFMT" -l . 2>/dev/null || true)
+if [ -n "$unformatted" ]; then
+    echo "pre-commit: these files are not gofmt-clean:" >&2
+    echo "$unformatted" >&2
+    echo "" >&2
+    echo "Run 'make fmt' and stage the result." >&2
+    exit 1
+fi
+
+if ! "$GO" vet ./... ; then
+    echo "" >&2
+    echo "pre-commit: go vet failed. Fix the findings or commit with --no-verify." >&2
+    exit 1
+fi

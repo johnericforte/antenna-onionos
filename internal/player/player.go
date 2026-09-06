@@ -11,16 +11,59 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"antenna/internal/dbg"
 )
 
-// Path is where Onion's Package Manager installs ffplay. It is a variable so
-// the smoke test can point at a local build, and it is the only place this
-// path appears.
-var Path = "/mnt/SDCARD/.tmp_update/bin/ffplay"
+// Path forces a particular ffplay binary. Empty means search knownPaths, which
+// is what a release does. Tests set it to point somewhere predictable.
+var Path string
+
+// knownPaths is where ffplay has been documented to live on OnionOS. Onion's
+// own docs describe renaming the binary inside .tmp_update/bin to switch
+// aspect ratio, while the upstream port for this device ships it under a
+// folder of its own. Which one is on a given card depends on the Onion version
+// and how the package was installed, and guessing one wrong is indispensable
+// from the app simply not working, so all of them are tried and the search is
+// logged.
+var knownPaths = []string{
+	"/mnt/SDCARD/.tmp_update/bin/ffplay",
+	"/mnt/SDCARD/Emu/ffplay/bin/ffplay",
+	"/mnt/SDCARD/App/ffplay/bin/ffplay",
+}
+
+// binary returns the ffplay to run. The result is not cached: a card can be
+// swapped and the search costs a handful of stat calls once per video.
+func binary() string {
+	if Path != "" {
+		return Path
+	}
+	for _, candidate := range knownPaths {
+		info, err := os.Stat(candidate)
+		if err != nil {
+			dbg.Printf("player: %s: %v", candidate, err)
+			continue
+		}
+		if info.IsDir() {
+			dbg.Printf("player: %s is a directory", candidate)
+			continue
+		}
+		dbg.Printf("player: found %s, mode %v", candidate, info.Mode())
+		return candidate
+	}
+	if found, err := exec.LookPath("ffplay"); err == nil {
+		dbg.Printf("player: found %s on PATH", found)
+		return found
+	}
+	// Nothing found. Return the first candidate so the failure names a real
+	// path rather than an empty string.
+	dbg.Printf("player: no ffplay in %v or on PATH", knownPaths)
+	return knownPaths[0]
+}
 
 // stderrLimit caps how much of ffplay's complaint is kept. The device has
 // 128 MB of RAM, and since the useful part of an ffmpeg error is its last
@@ -50,7 +93,7 @@ func (p *Player) Play(ctx context.Context, url string) error {
 	if url == "" {
 		return errors.New("no video to play")
 	}
-	return p.run(ctx, Path, Args(url))
+	return p.run(ctx, binary(), Args(url))
 }
 
 // Args builds the ffplay command line.
@@ -74,6 +117,9 @@ func Args(url string) []string {
 }
 
 func runFFplay(ctx context.Context, path string, args []string) error {
+	dbg.Printf("player: exec %s %q", path, args)
+
+	started := time.Now()
 	cmd := exec.CommandContext(ctx, path, args...)
 
 	stderr := &tailWriter{limit: stderrLimit}
@@ -88,18 +134,49 @@ func runFFplay(ctx context.Context, path string, args []string) error {
 
 	err := cmd.Run()
 	detail := stderr.String()
+
+	// ffplay's own output is the best evidence there is about why a stream did
+	// not play, so it goes to the trace whether or not the process failed. A
+	// clean exit after two seconds means something very different from a clean
+	// exit after eight minutes, so the duration goes with it.
+	dbg.Printf("player: exit after %s: err=%v state=%v stderr=%q",
+		time.Since(started).Round(time.Millisecond), err, cmd.ProcessState, detail)
+
 	if err != nil {
-		log.Printf("ffplay %s: %v\nstderr:\n%s", path, err, detail)
+		dbg.Fail("player: %s: %v: %s", path, err, lastLine(detail))
 	}
 	return playbackError(err, detail)
 }
 
-// playbackError turns an exec failure into a line worth showing. It is
-// separate from runFFplay so the classification can be tested without
-// starting a process, which matters because these strings are the only
-// diagnostics a handheld with no console ever shows.
+// fatalStderr are things ffplay prints when it gives up, while still exiting
+// with status zero. On this device the whole failure is one line on stderr and
+// a successful exit code, so the exit code alone cannot be trusted.
+//
+// "Protocol not found" is the one that matters: the ffplay OnionOS ships has
+// no TLS, so an https URL dies here, silently, in under a second.
+var fatalStderr = []string{
+	"Protocol not found",
+	"Invalid data found",
+	"Server returned",
+	"Connection refused",
+	"No such file or directory",
+	"Immediate exit requested",
+	"could not find codec",
+	"Decoder not found",
+}
+
+// playbackError turns an exec result into a line worth showing. It is separate
+// from runFFplay so the classification can be tested without starting a
+// process, which matters because these strings are the only diagnostics a
+// handheld with no console ever shows.
 func playbackError(err error, stderr string) error {
 	if err == nil {
+		// ffplay reports a dead stream by printing one line and exiting zero.
+		// Trusting the exit code here is what made a failed video look like a
+		// video the user simply watched.
+		if detail := fatalLine(stderr); detail != "" {
+			return fmt.Errorf("playback failed: %s", detail)
+		}
 		return nil
 	}
 
@@ -118,6 +195,24 @@ func playbackError(err error, stderr string) error {
 		return fmt.Errorf("playback failed: %s: %w", detail, err)
 	}
 	return fmt.Errorf("playback failed: %w", err)
+}
+
+// fatalLine returns the line on which ffplay reported giving up, or empty when
+// it said nothing fatal. It searches rather than taking the last line, since
+// the interesting line is followed by driver chatter as often as not.
+func fatalLine(stderr string) string {
+	for _, line := range strings.Split(stderr, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		for _, marker := range fatalStderr {
+			if strings.Contains(line, marker) {
+				return line
+			}
+		}
+	}
+	return ""
 }
 
 // lastLine returns the final non-empty line, which is where ffmpeg puts the

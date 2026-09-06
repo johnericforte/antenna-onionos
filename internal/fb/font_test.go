@@ -86,3 +86,16 @@ func TestTruncate(t *testing.T) {
 		}
 	})
 }
+
+// The framebuffer geometry ioctl writes the whole of fb_var_screeninfo, and
+// the request number carries no size to bound it. A buffer smaller than the
+// struct lets the kernel write past the end of a stack array, which smashes
+// the goroutine stack and crashes in a way the Go runtime cannot even unwind.
+// That shipped once. This pins the size.
+func TestVarScreenInfoIsTheWholeStruct(t *testing.T) {
+	const sizeofFbVarScreenInfo = 160 // linux/fb.h, 32-bit
+
+	if got := varScreenInfoWords * 4; got != sizeofFbVarScreenInfo {
+		t.Fatalf("geometry buffer is %d bytes, want %d", got, sizeofFbVarScreenInfo)
+	}
+}

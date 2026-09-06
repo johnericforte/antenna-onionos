@@ -42,10 +42,8 @@ func TestPlayHandsFFplayTheWholeCommandLine(t *testing.T) {
 		t.Fatalf("Play: %v", err)
 	}
 
-	// The literal, not the Path variable the production code reads, so a typo
-	// in the install path fails here instead of on the handheld.
-	if rec.path != "/mnt/SDCARD/.tmp_update/bin/ffplay" {
-		t.Errorf("ran %q", rec.path)
+	if rec.path == "" {
+		t.Error("no binary was chosen")
 	}
 
 	want := []string{
@@ -193,6 +191,36 @@ func TestPlaybackErrorKeepsTheCause(t *testing.T) {
 	}
 }
 
+// The documented install paths are worth pinning: getting one wrong is
+// indistinguishable from the app being broken, and the device is the only
+// place that shows it.
+func TestKnownPathsCoverTheDocumentedInstalls(t *testing.T) {
+	want := map[string]bool{
+		"/mnt/SDCARD/.tmp_update/bin/ffplay": false,
+		"/mnt/SDCARD/Emu/ffplay/bin/ffplay":  false,
+	}
+	for _, p := range knownPaths {
+		want[p] = true
+	}
+	for path, found := range want {
+		if !found {
+			t.Errorf("%s is no longer searched", path)
+		}
+	}
+}
+
+// An explicit Path wins over the search, which is how a test or a smoke run
+// points at a binary of its own.
+func TestPathOverridesTheSearch(t *testing.T) {
+	restore := Path
+	Path = "/somewhere/else/ffplay"
+	t.Cleanup(func() { Path = restore })
+
+	if got := binary(); got != "/somewhere/else/ffplay" {
+		t.Errorf("binary() = %q, want the override", got)
+	}
+}
+
 // End to end against a real missing binary, which is the case that shipped
 // broken. Everything else in this file injects a fake.
 func TestMissingFFplayTellsTheUserToInstallIt(t *testing.T) {
@@ -263,5 +291,48 @@ func TestTailWriterAcrossManySmallWrites(t *testing.T) {
 	}
 	if len(w.String()) != 8 {
 		t.Errorf("kept %d bytes, want 8", len(w.String()))
+	}
+}
+
+// The failure that shipped: OnionOS ffplay has no TLS, so an https URL makes
+// it print one line and exit with status zero. Trusting the exit code meant a
+// dead video looked like a watched one, with nothing on screen and nothing in
+// the log.
+func TestExitZeroWithAFatalLineIsAFailure(t *testing.T) {
+	const stderr = "vtpath = /dev/vc/2, fd = -1\n" +
+		"Current VT: 2\n" +
+		"1788734734336.000000 FB_VideoInit shadow_fb is 0\n" +
+		"https://dn600209.us.archive.org/0/items/x/BugsBny.mp4: Protocol not found\n"
+
+	err := playbackError(nil, stderr)
+	if err == nil {
+		t.Fatal("a fatal stderr line with exit status 0 was reported as success")
+	}
+	if !strings.Contains(err.Error(), "Protocol not found") {
+		t.Errorf("got %q, want the reason ffplay gave", err)
+	}
+}
+
+// Driver chatter on a healthy run must not be mistaken for a failure.
+func TestExitZeroWithOnlyChatterIsSuccess(t *testing.T) {
+	const stderr = "vtpath = /dev/vc/2, fd = -1\n" +
+		"vtpath = /dev/tty2, fd = 6\n" +
+		"Current VT: 2\n" +
+		"1788734734336.000000 FB_VideoInit shadow_fb is 0\n"
+
+	if err := playbackError(nil, stderr); err != nil {
+		t.Errorf("a clean run was reported as %v", err)
+	}
+}
+
+func TestFatalLineFindsTheReasonAnywhere(t *testing.T) {
+	// The reason is not always last: driver noise follows it as often as not.
+	const stderr = "x.mp4: Protocol not found\nCurrent VT: 2\nFB_VideoInit shadow_fb is 0\n"
+
+	if got := fatalLine(stderr); !strings.Contains(got, "Protocol not found") {
+		t.Errorf("fatalLine() = %q", got)
+	}
+	if got := fatalLine("all quiet\n"); got != "" {
+		t.Errorf("fatalLine() = %q, want empty", got)
 	}
 }

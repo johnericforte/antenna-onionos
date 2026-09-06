@@ -6,13 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"syscall"
 	"time"
 	"unsafe"
+
+	"antenna/internal/dbg"
 )
 
 // Device is the evdev node the Miyoo is expected to expose its buttons on. It
@@ -36,8 +37,12 @@ const evKey = 1
 const keyBitmapBytes = 96
 
 // eviocgbitKey is EVIOCGBIT(EV_KEY, keyBitmapBytes), the ioctl that reports
-// which key codes a device can send. Encoded as Linux encodes every ioctl:
+// which key codes a device can send. Encoded as Linux encodes a modern ioctl:
 // direction, size, type letter, then the request number.
+//
+// Unlike the framebuffer geometry ioctl, the size travels in the request, so
+// the kernel bounds its write to keyBitmapBytes. The buffer passed below must
+// still be exactly that size.
 const eviocgbitKey = 2<<30 | keyBitmapBytes<<16 | 'E'<<8 | (0x20 + evKey)
 
 // Button identifies a physical control.
@@ -100,17 +105,17 @@ func openButtons(preferred string) (*os.File, error) {
 		if hasDPad(f) {
 			return f, nil
 		}
-		log.Printf("input: %s does not report the d-pad, searching", preferred)
+		dbg.Printf("input: %s does not report the d-pad, searching", preferred)
 		_ = f.Close()
 	} else {
-		log.Printf("input: open %s: %v, searching", preferred, err)
+		dbg.Printf("input: open %s: %v, searching", preferred, err)
 	}
 
 	nodes, err := filepath.Glob(deviceGlob)
 	if err != nil {
 		return nil, fmt.Errorf("search %s: %w", deviceGlob, err)
 	}
-	log.Printf("input: %d nodes in %s: %v", len(nodes), deviceGlob, nodes)
+	dbg.Printf("input: %d nodes in %s: %v", len(nodes), deviceGlob, nodes)
 
 	for _, node := range nodes {
 		if node == preferred {
@@ -120,14 +125,14 @@ func openButtons(preferred string) (*os.File, error) {
 		if err != nil {
 			// Worth recording: a permission problem here looks identical to a
 			// device that simply has no buttons.
-			log.Printf("input: %s: %v", node, err)
+			dbg.Printf("input: %s: %v", node, err)
 			continue
 		}
 		if hasDPad(f) {
-			log.Printf("input: using %s", node)
+			dbg.Printf("input: using %s", node)
 			return f, nil
 		}
-		log.Printf("input: %s has no d-pad", node)
+		dbg.Printf("input: %s has no d-pad", node)
 		_ = f.Close()
 	}
 	return nil, fmt.Errorf("no input device in %s reports the d-pad, checked %d", deviceGlob, len(nodes))

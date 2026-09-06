@@ -29,11 +29,29 @@ trap 'exit 130' 1 2 15
 # Stop Onion from sleeping while the user is browsing.
 touch /tmp/stay_awake
 
-# Milestone 2 note: once networking lands, this script must also export
-#   SSL_CERT_FILE="$appdir/cacert.pem"
-#   GODEBUG=tlsmlkem=0,tlssecpmlkem=0
-# OnionOS ships without a usable system CA store on some Miyoo images, and the
-# Miyoo kernel rejects Go's post-quantum TLS ClientHello.
+# archive.org forces TLS on every path, so all three of these matter.
+#
+# Some Miyoo images ship without a usable system CA store, so carry our own.
+if [ -f "$appdir/cacert.pem" ]; then
+    SSL_CERT_FILE="$appdir/cacert.pem"
+    export SSL_CERT_FILE
+else
+    echo "warning: $appdir/cacert.pem is missing, TLS will fail" >&2
+fi
+
+# The Miyoo kernel rejects Go's post-quantum ClientHello, which fails the
+# handshake before any certificate is even looked at.
+GODEBUG=tlsmlkem=0,tlssecpmlkem=0
+export GODEBUG
+
+# Certificate validity is checked against the clock, and this device has no
+# battery-backed RTC. A clock stuck in the past fails every handshake, and the
+# error it produces reads like a network fault, so say so plainly.
+year=$(date +%Y 2>/dev/null)
+case "$year" in
+    ''|*[!0-9]*) ;;
+    *) [ "$year" -lt 2024 ] && echo "warning: clock reads $year, TLS will fail until it is set" >&2 ;;
+esac
 
 chmod 0755 "$appdir/antenna" 2>/dev/null
 "$appdir/antenna" >> "$logfile" 2>&1

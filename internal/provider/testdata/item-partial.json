@@ -1,0 +1,280 @@
+{
+ "d1": "dn800300.us.archive.org",
+ "dir": "/0/items/disneycartoons-publicdomain",
+ "metadata": {
+  "identifier": "disneycartoons-publicdomain",
+  "title": "All public domain Walt Disney Studios cartoons"
+ },
+ "files": [
+  {
+   "name": "All Together (1942).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "All Together (1942).mp4",
+   "size": "33906270",
+   "length": "180.06",
+   "width": "640",
+   "height": "478"
+  },
+  {
+   "name": "All Together (1942).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "33906270",
+   "length": "180.06",
+   "width": "640",
+   "height": "478"
+  },
+  {
+   "name": "Cleanliness Brings Health (1945).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "52901000",
+   "length": "509.45",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Donald's Decision (1942).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "Donald's Decision (1942).mp4",
+   "size": "43120386",
+   "length": "216.26",
+   "width": "640",
+   "height": "478"
+  },
+  {
+   "name": "Donald's Decision (1942).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "43120386",
+   "length": "216.26",
+   "width": "640",
+   "height": "478"
+  },
+  {
+   "name": "Education for Death (1943).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "63430466",
+   "length": "608.18",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Hooked Bear (1956).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "Hooked Bear (1956).mp4",
+   "size": "46430207",
+   "length": "377.09",
+   "width": "633",
+   "height": "322"
+  },
+  {
+   "name": "Hooked Bear (1956).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "46430207",
+   "length": "377.09",
+   "width": "633",
+   "height": "322"
+  },
+  {
+   "name": "Mickey's Surprise Party (1939).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "Mickey's Surprise Party (1939).mp4",
+   "size": "32937235",
+   "length": "316.72",
+   "width": "638",
+   "height": "480"
+  },
+  {
+   "name": "Mickey's Surprise Party (1939).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "32937235",
+   "length": "316.72",
+   "width": "638",
+   "height": "480"
+  },
+  {
+   "name": "Minnie's Yoo Hoo (1930).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "Minnie's Yoo Hoo (1930).mp4",
+   "size": "14129223",
+   "length": "313.45",
+   "width": "416",
+   "height": "360"
+  },
+  {
+   "name": "Minnie's Yoo Hoo (1930).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "14129223",
+   "length": "313.45",
+   "width": "416",
+   "height": "360"
+  },
+  {
+   "name": "Out Of The Frying Pan Into The Firing Line (1942).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "Out Of The Frying Pan Into The Firing Line (1942).mp4",
+   "size": "38902349",
+   "length": "200.4",
+   "width": "640",
+   "height": "478"
+  },
+  {
+   "name": "Out Of The Frying Pan Into The Firing Line (1942).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "38902349",
+   "length": "200.4",
+   "width": "640",
+   "height": "478"
+  },
+  {
+   "name": "Plane Crazy (1928).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "200738267",
+   "length": "359.14",
+   "width": "1920",
+   "height": "1080"
+  },
+  {
+   "name": "Plane Crazy (1928, silent version).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "118690599",
+   "length": "354.92",
+   "width": "1440",
+   "height": "1080"
+  },
+  {
+   "name": "Steamboat Willie (1928).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "207711111",
+   "length": "466.65",
+   "width": "1920",
+   "height": "1080"
+  },
+  {
+   "name": "Susie, The Little Blue Coupe (1952).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "177053732",
+   "length": "493.59",
+   "width": "1440",
+   "height": "1080"
+  },
+  {
+   "name": "The Cookie Carnival (1935).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "194336411",
+   "length": "481.65",
+   "width": "1920",
+   "height": "1080"
+  },
+  {
+   "name": "The Gallopin' Gaucho (1928).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "111713950",
+   "length": "396.57",
+   "width": "1286",
+   "height": "1080"
+  },
+  {
+   "name": "The Gallopin' Gaucho (1928, Computer Colorized).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "26524861",
+   "length": "366.13",
+   "width": "640",
+   "height": "360"
+  },
+  {
+   "name": "The Mad Doctor (1933).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "101329831",
+   "length": "395.3",
+   "width": "1280",
+   "height": "720"
+  },
+  {
+   "name": "The Mad Doctor (Computer Colorized).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "100706387",
+   "length": "413.8",
+   "width": "960",
+   "height": "720"
+  },
+  {
+   "name": "The Spirit Of '43 (1943).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "The Spirit Of '43 (1943).mp4",
+   "size": "48297992",
+   "length": "343.01",
+   "width": "640",
+   "height": "466"
+  },
+  {
+   "name": "The Spirit Of '43 (1943).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "48297992",
+   "length": "343.01",
+   "width": "640",
+   "height": "466"
+  },
+  {
+   "name": "The Thrifty Pig (1941).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "The Thrifty Pig (1941).mp4",
+   "size": "46980709",
+   "length": "252.13",
+   "width": "576",
+   "height": "436"
+  },
+  {
+   "name": "The Thrifty Pig (1941).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "46980709",
+   "length": "252.13",
+   "width": "576",
+   "height": "436"
+  },
+  {
+   "name": "The Winged Scourge (1943).ia.mp4",
+   "format": "h.264 IA",
+   "source": "derivative",
+   "original": "The Winged Scourge (1943).mp4",
+   "size": "103981828",
+   "length": "585.6",
+   "width": "638",
+   "height": "478"
+  },
+  {
+   "name": "The Winged Scourge (1943).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "103981828",
+   "length": "585.6",
+   "width": "638",
+   "height": "478"
+  }
+ ]
+}

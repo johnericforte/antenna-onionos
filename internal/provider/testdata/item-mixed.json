@@ -1,0 +1,276 @@
+{
+ "d1": "dn600308.us.archive.org",
+ "dir": "/0/items/pdcartooncollection",
+ "metadata": {
+  "identifier": "pdcartooncollection",
+  "title": "PD Cartoon Collection"
+ },
+ "files": [
+  {
+   "name": "Brementown Musicians UB Iwerks ComiColor.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "69553394",
+   "length": "503.18",
+   "width": "628",
+   "height": "480"
+  },
+  {
+   "name": "Brementown Musicians UB Iwerks ComiColor.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Brementown Musicians UB Iwerks ComiColor.mp4",
+   "size": "37294333",
+   "length": "503.18",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "COMICOLOR - 1935 - _Old Mother Hubbard_.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "64509058",
+   "length": "463.59",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "COMICOLOR - 1935 - _Old Mother Hubbard_.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "COMICOLOR - 1935 - _Old Mother Hubbard_.mp4",
+   "size": "35644794",
+   "length": "463.59",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "ComiColor_ Simple Simon.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "53720839",
+   "length": "402.91",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "ComiColor_ Simple Simon.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "ComiColor_ Simple Simon.mp4",
+   "size": "29816963",
+   "length": "402.91",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Dick Whittington's Cat UB Iwerks ComicColor.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "42840592",
+   "length": "455.16",
+   "width": "628",
+   "height": "480"
+  },
+  {
+   "name": "Dick Whittington's Cat UB Iwerks ComicColor.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Dick Whittington's Cat UB Iwerks ComicColor.mp4",
+   "size": "34185383",
+   "length": "455.16",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Fleischer Color Classic Little Lambkins 1940 (old free cartoon public domain).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "51353661",
+   "length": "379.48",
+   "width": "710",
+   "height": "480"
+  },
+  {
+   "name": "Fleischer Color Classic Little Lambkins 1940 (old free cartoon public domain).ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Fleischer Color Classic Little Lambkins 1940 (old free cartoon public domain).mp4",
+   "size": "28499645",
+   "length": "379.48",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Fleischer Color Classic Somewhere in Dreamland 1936) (old cartoon vintage public domain).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "134752487",
+   "length": "535.55",
+   "width": "984",
+   "height": "720"
+  },
+  {
+   "name": "Fleischer Color Classic Somewhere in Dreamland 1936) (old cartoon vintage public domain).ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Fleischer Color Classic Somewhere in Dreamland 1936) (old cartoon vintage public domain).mp4",
+   "size": "40068524",
+   "length": "535.55",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Fleischer cartoon Color Classic Greedy Humpty Dumpty 1936 (old cartoon vintage public domain).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "62510754",
+   "length": "467.33",
+   "width": "714",
+   "height": "480"
+  },
+  {
+   "name": "Fleischer cartoon Color Classic Greedy Humpty Dumpty 1936 (old cartoon vintage public domain).ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Fleischer cartoon Color Classic Greedy Humpty Dumpty 1936 (old cartoon vintage public domain).mp4",
+   "size": "35084474",
+   "length": "467.32",
+   "width": "446",
+   "height": "300"
+  },
+  {
+   "name": "Fleischer cartoon Color Classic Hawaiian Birds 1936(old cartoons vintage public domain).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "68153772",
+   "length": "535.15",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Fleischer cartoon Color Classic Hawaiian Birds 1936(old cartoons vintage public domain).ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Fleischer cartoon Color Classic Hawaiian Birds 1936(old cartoons vintage public domain).mp4",
+   "size": "40443021",
+   "length": "535.15",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Fleischer cartoon Color Classic The Little Stranger 1936 (old free cartoons public domain).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "66036762",
+   "length": "479.91",
+   "width": "656",
+   "height": "480"
+  },
+  {
+   "name": "Fleischer cartoon Color Classic The Little Stranger 1936 (old free cartoons public domain).ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Fleischer cartoon Color Classic The Little Stranger 1936 (old free cartoons public domain).mp4",
+   "size": "36102662",
+   "length": "479.91",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Fleischer cartoon Gabby King for a Day 1940(old free cartoon funny public domain).mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "44944188",
+   "length": "421.54",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Fleischer cartoon Gabby King for a Day 1940(old free cartoon funny public domain).ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Fleischer cartoon Gabby King for a Day 1940(old free cartoon funny public domain).mp4",
+   "size": "33433701",
+   "length": "421.54",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusAndTheEvilUnicorn.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "16573653",
+   "length": "291.13",
+   "width": "320",
+   "height": "206"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusAndTheEvilUnicorn.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Hercules1960sCartoon-DaedalusAndTheEvilUnicorn.mp4",
+   "size": "21918619",
+   "length": "291.16",
+   "width": "466",
+   "height": "300"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusAndTheMinotaur.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "8499802",
+   "length": "280.84",
+   "width": "320",
+   "height": "206"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusAndTheMinotaur.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Hercules1960sCartoon-DaedalusAndTheMinotaur.mp4",
+   "size": "20697466",
+   "length": "280.88",
+   "width": "466",
+   "height": "300"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusConcoctsABrew.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "10101574",
+   "length": "293.94",
+   "width": "320",
+   "height": "240"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusConcoctsABrew.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Hercules1960sCartoon-DaedalusConcoctsABrew.mp4",
+   "size": "21877575",
+   "length": "293.97",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusCopsTheThunderboltDisc.mp4",
+   "format": "MPEG4",
+   "source": "original",
+   "size": "9080266",
+   "length": "286.93",
+   "width": "320",
+   "height": "206"
+  },
+  {
+   "name": "Hercules1960sCartoon-DaedalusCopsTheThunderboltDisc.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Hercules1960sCartoon-DaedalusCopsTheThunderboltDisc.mp4",
+   "size": "21096555",
+   "length": "286.93",
+   "width": "466",
+   "height": "300"
+  }
+ ]
+}

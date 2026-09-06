@@ -1,18 +1,22 @@
 // Command antenna is an OnionOS app for the Miyoo Mini Plus.
 //
-// Milestone 1 is the walking skeleton: it proves the cross-compile, the
-// OnionOS package layout, framebuffer rendering, button input, and a clean
-// exit back to the Onion menu. It does no networking.
+// Milestone 2 browses the Internet Archive. The shipped item list is public
+// domain animation, but nothing below knows that: it renders whatever the
+// wired-in provider returns, and the provider drops anything this hardware
+// cannot decode.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"antenna/internal/fb"
 	"antenna/internal/input"
+	"antenna/internal/provider"
 )
 
 const (
@@ -37,34 +41,25 @@ var (
 	colorDivider    = fb.RGB(44, 44, 54)
 )
 
-// placeholderItems stands in for provider results until Milestone 2. The list
-// is deliberately longer than one screen so scrolling is exercised.
-var placeholderItems = []string{
-	"Steamboat Willie (1928)",
-	"Plane Crazy (1928)",
-	"The Gallopin' Gaucho (1928)",
-	"Balloon Land (1935)",
-	"Summertime (1935)",
-	"The Valiant Tailor (1934)",
-	"Don Quixote (1934)",
-	"Ali Baba (1936)",
-	"The Cookie Carnival (1935)",
-	"Susie, The Little Blue Coupe (1952)",
-	"A Coy Decoy (1941)",
-	"Ali Baba Bound (1940)",
-	"Porky's Cafe (1942)",
-	"Sailor (1940)",
-	"Betty Boop: Snow White (1933)",
-	"Popeye: A Dream Walking (1934)",
-	"Superman: The Mad Scientist (1941)",
-	"Gulliver's Travels (1939)",
-	"Little Lulu: Eggs Don't Bounce (1943)",
-	"Mighty Mouse: The Wreck of the Hesperus (1944)",
+// defaultItems is the shipped provider configuration. These three archive.org
+// items were measured on 2026-09-06: the first has an h.264 derivative on every
+// title, the other two are majority undecodable and exist here so the skip path
+// is exercised in the real app, not only in tests.
+var defaultItems = []provider.Item{
+	{ID: "classic_cartoons_201603", Title: "Classic Cartoons"},
+	{ID: "disneycartoons-publicdomain", Title: "Disney Public Domain"},
+	{ID: "pdcartooncollection", Title: "Public Domain Cartoons"},
 }
+
+// loadTimeout bounds the whole startup fetch. The device is often out of Wi-Fi
+// range, and an app that hangs on a black screen looks broken.
+const loadTimeout = 30 * time.Second
 
 type app struct {
 	screen   *fb.Framebuffer
-	items    []string
+	source   provider.Provider
+	entries  []provider.Entry
+	status   string
 	selected int
 	offset   int
 	rows     int
@@ -93,9 +88,15 @@ func run() error {
 	listHeight := screen.Height() - headerHeight - footerHeight
 	a := &app{
 		screen: screen,
-		items:  placeholderItems,
+		source: provider.NewArchive(defaultItems),
+		status: "Loading...",
 		rows:   listHeight / rowHeight,
 	}
+	a.render()
+
+	ctx, cancel := context.WithTimeout(context.Background(), loadTimeout)
+	defer cancel()
+	a.load(ctx)
 
 	// Onion sends SIGTERM when the user backs out from the menu side.
 	signals := make(chan os.Signal, 1)
@@ -133,15 +134,54 @@ func run() error {
 	}
 }
 
+// load fills the list from the provider. Every item is browsed and the
+// playable titles are flattened into one list, because two of the three
+// shipped items are mostly undecodable and folders of four titles are not
+// worth a level of navigation.
+//
+// A failure is shown in the list area rather than returned. The user can still
+// read the reason and press B, which beats exiting to the Onion menu with no
+// explanation at all.
+func (a *app) load(ctx context.Context) {
+	var failures int
+
+	roots, err := a.source.Browse(ctx, "")
+	if err != nil {
+		a.status = err.Error()
+		return
+	}
+
+	for _, root := range roots {
+		titles, err := a.source.Browse(ctx, root.ID)
+		if err != nil {
+			failures++
+			continue
+		}
+		a.entries = append(a.entries, titles...)
+	}
+
+	switch {
+	case len(a.entries) > 0:
+		a.status = ""
+	case failures > 0:
+		a.status = "Cannot reach archive.org. Check Wi-Fi."
+	default:
+		a.status = "Nothing here plays on this device."
+	}
+}
+
 // move shifts the selection by delta, clamping at both ends, and scrolls the
 // window so the selection stays visible.
 func (a *app) move(delta int) {
+	if len(a.entries) == 0 {
+		return
+	}
 	a.selected += delta
 	if a.selected < 0 {
 		a.selected = 0
 	}
-	if a.selected >= len(a.items) {
-		a.selected = len(a.items) - 1
+	if a.selected >= len(a.entries) {
+		a.selected = len(a.entries) - 1
 	}
 	if a.selected < a.offset {
 		a.offset = a.selected
@@ -162,15 +202,19 @@ func (a *app) render() {
 	s.Rect(0, headerHeight-2, width, 2, colorAccent)
 	s.DrawText(sidePadding, 14, "Antenna", titleScale, colorText)
 
-	// List.
+	// List, or the reason there is not one.
 	maxTextWidth := width - sidePadding*2
+	if len(a.entries) == 0 {
+		label := fb.Truncate(a.status, maxTextWidth, textScale)
+		s.DrawText(sidePadding, headerHeight+rowHeight, label, textScale, colorTextDim)
+	}
 	for row := 0; row < a.rows; row++ {
 		index := a.offset + row
-		if index >= len(a.items) {
+		if index >= len(a.entries) {
 			break
 		}
 		y := headerHeight + row*rowHeight
-		label := fb.Truncate(a.items[index], maxTextWidth, textScale)
+		label := fb.Truncate(a.entries[index].Title, maxTextWidth, textScale)
 		textY := y + (rowHeight-fb.CellHeight*textScale)/2
 
 		if index == a.selected {
@@ -190,8 +234,10 @@ func (a *app) render() {
 	s.Rect(0, footerY, width, 1, colorDivider)
 	s.DrawText(sidePadding, footerY+13, "D-PAD MOVE   L/R PAGE   B EXIT", 1, colorTextDim)
 
-	position := fmt.Sprintf("%d/%d", a.selected+1, len(a.items))
-	s.DrawText(width-sidePadding-fb.TextWidth(position, 1), footerY+13, position, 1, colorTextDim)
+	if len(a.entries) > 0 {
+		position := fmt.Sprintf("%d/%d", a.selected+1, len(a.entries))
+		s.DrawText(width-sidePadding-fb.TextWidth(position, 1), footerY+13, position, 1, colorTextDim)
+	}
 
 	s.Present()
 }
@@ -199,7 +245,7 @@ func (a *app) render() {
 // renderScrollbar draws a proportional thumb on the right edge of the list,
 // and nothing at all when everything already fits.
 func (a *app) renderScrollbar() {
-	if len(a.items) <= a.rows {
+	if len(a.entries) <= a.rows {
 		return
 	}
 	s := a.screen
@@ -209,11 +255,11 @@ func (a *app) renderScrollbar() {
 
 	s.Rect(trackX, trackY, 2, trackH, colorDivider)
 
-	thumbH := trackH * a.rows / len(a.items)
+	thumbH := trackH * a.rows / len(a.entries)
 	if thumbH < 12 {
 		thumbH = 12
 	}
-	span := len(a.items) - a.rows
+	span := len(a.entries) - a.rows
 	thumbY := trackY
 	if span > 0 {
 		thumbY += (trackH - thumbH) * a.offset / span

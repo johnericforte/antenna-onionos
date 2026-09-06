@@ -32,6 +32,32 @@ func (k Kind) String() string {
 	}
 }
 
+// Codec is the video codec inside the container.
+type Codec int
+
+const (
+	// CodecUnknown is a stream whose codec could not be established. It is
+	// never offered: an unplayable file that hangs the player is worse than a
+	// title that quietly does not appear.
+	CodecUnknown Codec = iota
+	// H264 is the only codec this device decodes at a watchable frame rate.
+	H264
+	// Theora arrives on older Internet Archive items as .ogv derivatives.
+	// Unconfirmed on this hardware, so not offered.
+	Theora
+)
+
+func (c Codec) String() string {
+	switch c {
+	case H264:
+		return "H.264"
+	case Theora:
+		return "Theora"
+	default:
+		return "Unrecognised"
+	}
+}
+
 // Entry is one browsable item: a folder to descend into or a playable title.
 type Entry struct {
 	ID       string
@@ -48,6 +74,7 @@ type Stream struct {
 	Width   int
 	Height  int
 	Bitrate int // bits per second
+	Codec   Codec
 }
 
 // Provider is a browsable source of video.
@@ -73,6 +100,12 @@ func (s *Stream) Playable() (bool, string) {
 	}
 	if s.Kind != Progressive {
 		return false, fmt.Sprintf("%s streams are not supported", s.Kind)
+	}
+	if s.Codec != H264 {
+		return false, fmt.Sprintf("%s video is not supported", s.Codec)
+	}
+	if s.Height == 0 || s.Bitrate == 0 {
+		return false, "Video size is unknown, so it cannot be checked"
 	}
 	if s.Height > MaxHeight {
 		return false, fmt.Sprintf("Video is %dp; this device tops out at %dp", s.Height, MaxHeight)

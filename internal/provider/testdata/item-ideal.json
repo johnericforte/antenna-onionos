@@ -1,0 +1,358 @@
+{
+ "d1": "dn600209.us.archive.org",
+ "dir": "/0/items/classic_cartoons_201603",
+ "metadata": {
+  "identifier": "classic_cartoons_201603",
+  "title": "Classic Cartoons"
+ },
+ "files": [
+  {
+   "name": "A Coy Decoy.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "46744615",
+   "length": "470.13",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "A Coy Decoy.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "A Coy Decoy.Mov",
+   "size": "48820761",
+   "length": "470.4",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "A Coy Decoy.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "A Coy Decoy.Mov",
+   "size": "34801406",
+   "length": "470.4",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Ali Baba Bound.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "43680567",
+   "length": "441.6",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "Ali Baba Bound.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Ali Baba Bound.Mov",
+   "size": "45840343",
+   "length": "441.62",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Ali Baba Bound.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Ali Baba Bound.Mov",
+   "size": "32580126",
+   "length": "441.6",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Betty Boop.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "58461199",
+   "length": "399",
+   "width": "320",
+   "height": "240"
+  },
+  {
+   "name": "Betty Boop.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Betty Boop.Mov",
+   "size": "41366483",
+   "length": "399.02",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Betty Boop.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Betty Boop.Mov",
+   "size": "29413345",
+   "length": "399",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Bimbo's Auto.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "38288186",
+   "length": "386.93",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "Bimbo's Auto.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Bimbo's Auto.Mov",
+   "size": "40093605",
+   "length": "387.2",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Bimbo's Auto.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Bimbo's Auto.Mov",
+   "size": "28612983",
+   "length": "387.2",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Bugs.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "52609186",
+   "length": "530.93",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "Bugs.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Bugs.Mov",
+   "size": "55118713",
+   "length": "531.2",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Bugs.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Bugs.Mov",
+   "size": "39228300",
+   "length": "531.2",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "BugsBny.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "52487434",
+   "length": "529.53",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "BugsBny.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "BugsBny.Mov",
+   "size": "54803957",
+   "length": "529.8",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "BugsBny.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "BugsBny.Mov",
+   "size": "39023698",
+   "length": "529.8",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Popeye.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "36826824",
+   "length": "371.2",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "Popeye.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Popeye.Mov",
+   "size": "38551141",
+   "length": "371.4",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Popeye.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Popeye.Mov",
+   "size": "27503317",
+   "length": "371.4",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Porky's Cafe.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "38738398",
+   "length": "390.33",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "Porky's Cafe.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Porky's Cafe.Mov",
+   "size": "40543262",
+   "length": "390.6",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Porky's Cafe.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Porky's Cafe.Mov",
+   "size": "28853915",
+   "length": "390.6",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Sailor.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "38819030",
+   "length": "394.93",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "Sailor.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Sailor.Mov",
+   "size": "41011902",
+   "length": "395.2",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Sailor.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Sailor.Mov",
+   "size": "29229340",
+   "length": "395.2",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "The HenPecked Duck.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "45146777",
+   "length": "455.07",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "The HenPecked Duck.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "The HenPecked Duck.Mov",
+   "size": "47265123",
+   "length": "455.4",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "The HenPecked Duck.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "The HenPecked Duck.Mov",
+   "size": "33683924",
+   "length": "455.4",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "Toyland.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "42376539",
+   "length": "434.07",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "Toyland.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "Toyland.Mov",
+   "size": "44896551",
+   "length": "434.4",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "Toyland.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "Toyland.Mov",
+   "size": "32188418",
+   "length": "434.4",
+   "width": "400",
+   "height": "300"
+  },
+  {
+   "name": "WhoZoo.Mov",
+   "format": "QuickTime",
+   "source": "original",
+   "size": "43871853",
+   "length": "443.2",
+   "width": "290",
+   "height": "222"
+  },
+  {
+   "name": "WhoZoo.mp4",
+   "format": "h.264",
+   "source": "derivative",
+   "original": "WhoZoo.Mov",
+   "size": "45817930",
+   "length": "443.22",
+   "width": "640",
+   "height": "480"
+  },
+  {
+   "name": "WhoZoo.ogv",
+   "format": "Ogg Video",
+   "source": "derivative",
+   "original": "WhoZoo.Mov",
+   "size": "32757231",
+   "length": "443.2",
+   "width": "400",
+   "height": "300"
+  }
+ ]
+}

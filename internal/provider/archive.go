@@ -202,9 +202,13 @@ func (a *Archive) titles(ctx context.Context, itemID string) ([]*title, error) {
 	return titles, nil
 }
 
-// document fetches and decodes one item's metadata. A missing item, an empty
-// document and a document with no files are all the same thing to the caller:
-// nothing to browse.
+// document fetches and decodes one item's metadata.
+//
+// archive.org answers 200 with {} for an identifier that no longer exists, so
+// an empty document is a broken configuration rather than an item with
+// nothing worth playing. Those two look identical from the outside and they
+// send whoever is debugging in opposite directions, so they are separated
+// here.
 func (a *Archive) document(ctx context.Context, itemID string) (*metadataDoc, error) {
 	body, err := a.fetch(ctx, itemID)
 	if err != nil {
@@ -214,6 +218,9 @@ func (a *Archive) document(ctx context.Context, itemID string) (*metadataDoc, er
 	var doc metadataDoc
 	if err := json.Unmarshal(body, &doc); err != nil {
 		return nil, fmt.Errorf("metadata for %s is not valid JSON: %w", itemID, err)
+	}
+	if len(doc.Files) == 0 {
+		return nil, fmt.Errorf("archive.org has no files for %s", itemID)
 	}
 	return &doc, nil
 }

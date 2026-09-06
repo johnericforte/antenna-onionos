@@ -25,6 +25,7 @@ If it doesn't show up, check whether the folder ended up nested a level too deep
 | Button | Action |
 |---|---|
 | D-pad up / down | Move selection |
+| A | Play the selected title |
 | L1 / R1 | Page up / down |
 | B or MENU | Exit to the Onion menu |
 
@@ -36,9 +37,9 @@ The Miyoo Mini Plus decodes H.264 in software on two Cortex-A7 cores, which work
 
 ## Status
 
-Browsing works. Playback doesn't, that's the next piece.
+Browsing and playback are both written. Playback hands the stream to ffplay, waits for it, and drops you back on the list.
 
-None of this has run on the actual handheld yet. It was built and tested on a desktop, and the Miyoo hasn't seen it.
+None of this has run on the actual handheld yet. It was built and tested on a desktop, and the Miyoo hasn't seen it, so treat the whole thing as unverified until it has.
 
 ## Content and licensing
 

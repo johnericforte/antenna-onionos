@@ -87,6 +87,19 @@ func (f *Framebuffer) Width() int { return f.w }
 // Height returns the panel height in pixels.
 func (f *Framebuffer) Height() int { return f.h }
 
+// GeometryChanged reports whether the panel is no longer the size that was
+// mapped at startup. ffplay takes over /dev/fb0 through SDL while it plays,
+// and if it hands back a different mode then every later draw lands in a
+// buffer the panel reads differently. That failure is silent and looks like a
+// frozen device, so the caller checks for it rather than discovering it.
+func (f *Framebuffer) GeometryChanged() bool {
+	if f.file == nil {
+		return false
+	}
+	w, h := queryGeometry(f.file)
+	return w != f.w || h != f.h
+}
+
 // Close unmaps the panel and releases the device.
 func (f *Framebuffer) Close() error {
 	if f.screen != nil {

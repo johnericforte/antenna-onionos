@@ -1,15 +1,23 @@
-# Antenna item list.
+# Antenna sources. One per line: the reference, a space, then the name you want
+# on screen. The name is optional. Lines starting with # are ignored, and the
+# order here is the order in the app.
 #
-# One archive.org item per line: the identifier, then a space, then the name
-# you want on screen. The name is optional, and the order here is the order in
-# the app.
+# The shape of the reference decides how it is read.
 #
-# The identifier is the last part of an archive.org details URL. For
-# https://archive.org/details/classic_cartoons_201603 it is
-# classic_cartoons_201603
+#   An archive.org identifier, the last part of a details URL. An item is a
+#   folder of videos, and Antenna lists the ones this device can decode:
 #
-# An item is a folder of videos, not a single video. Antenna lists every title
-# inside it that this device can decode, and quietly skips the rest.
+#     classic_cartoons_201603 Classic Cartoons
+#
+#   A direct video URL, played as one title:
+#
+#     https://download.blender.org/durian/trailer/sintel_trailer-480p.mp4 Sintel Trailer
+#
+#   A playlist URL, ending .m3u or .txt, expanded into the videos it names. An
+#   m3u EXTINF title is used when there is one. Note that .m3u8 is HLS, which
+#   this device cannot play, so it is not treated as a playlist:
+#
+#     https://example.org/my/list.m3u My List
 #
 # Delete this file to go back to the built-in list.
 

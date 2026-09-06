@@ -30,10 +30,9 @@ const (
 
 // testArchive returns a provider that reads fixtures from disk. Nothing in
 // this file opens a socket, so the suite passes with networking unavailable.
-func testArchive(t *testing.T, items ...Item) *Archive {
+func testArchive(t *testing.T) *archive {
 	t.Helper()
-	return &Archive{
-		items: items,
+	return &archive{
 		fetch: func(_ context.Context, itemID string) ([]byte, error) {
 			body, err := os.ReadFile(filepath.Join("testdata", itemID+".json"))
 			if err != nil {
@@ -41,30 +40,6 @@ func testArchive(t *testing.T, items ...Item) *Archive {
 			}
 			return body, nil
 		},
-	}
-}
-
-func TestBrowseRootListsCuratedItems(t *testing.T) {
-	a := testArchive(t,
-		Item{ID: itemIdeal, Title: "Classic Cartoons"},
-		Item{ID: itemPartial, Title: "Disney Public Domain"},
-	)
-
-	entries, err := a.Browse(context.Background(), "")
-	if err != nil {
-		t.Fatalf("Browse root: %v", err)
-	}
-	if len(entries) != 2 {
-		t.Fatalf("got %d root entries, want 2", len(entries))
-	}
-	// Curated order is the order supplied, not alphabetical.
-	if entries[0].Title != "Classic Cartoons" || entries[1].Title != "Disney Public Domain" {
-		t.Fatalf("root order changed: %q, %q", entries[0].Title, entries[1].Title)
-	}
-	for _, e := range entries {
-		if !e.IsFolder {
-			t.Errorf("%s should browse as a folder", e.ID)
-		}
 	}
 }
 
@@ -95,7 +70,7 @@ func TestBrowseItemPlayableCounts(t *testing.T) {
 				t.Errorf("grouped %d titles, want %d", len(titles), tc.titles)
 			}
 
-			entries, err := a.Browse(context.Background(), tc.item)
+			entries, err := a.entries(context.Background(), tc.item)
 			if err != nil {
 				t.Fatalf("Browse: %v", err)
 			}
@@ -120,7 +95,7 @@ func TestBrowseItemPlayableCounts(t *testing.T) {
 func TestBrowseUndecodableItemIsEmptyNotAnError(t *testing.T) {
 	a := testArchive(t)
 
-	entries, err := a.Browse(context.Background(), itemUnplayable)
+	entries, err := a.entries(context.Background(), itemUnplayable)
 	if err != nil {
 		t.Fatalf("an undecodable item must not error: %v", err)
 	}
@@ -135,7 +110,7 @@ func TestBrowseUndecodableItemIsEmptyNotAnError(t *testing.T) {
 func TestBrowseMissingItemIsAnError(t *testing.T) {
 	a := testArchive(t)
 
-	_, err := a.Browse(context.Background(), itemEmpty)
+	_, err := a.entries(context.Background(), itemEmpty)
 	if err == nil {
 		t.Fatal("an identifier that no longer exists should be reported")
 	}
@@ -147,18 +122,18 @@ func TestBrowseMissingItemIsAnError(t *testing.T) {
 func TestBrowseMalformedResponseErrorsWithoutPanicking(t *testing.T) {
 	a := testArchive(t)
 
-	if _, err := a.Browse(context.Background(), itemMalformed); err == nil {
+	if _, err := a.entries(context.Background(), itemMalformed); err == nil {
 		t.Fatal("truncated JSON should be reported, not ignored")
 	}
 }
 
 func TestBrowseFetchFailurePropagates(t *testing.T) {
 	wantErr := errors.New("cannot reach archive.org")
-	a := &Archive{fetch: func(context.Context, string) ([]byte, error) {
+	a := &archive{fetch: func(context.Context, string) ([]byte, error) {
 		return nil, wantErr
 	}}
 
-	_, err := a.Browse(context.Background(), itemIdeal)
+	_, err := a.entries(context.Background(), itemIdeal)
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("got %v, want %v", err, wantErr)
 	}
@@ -170,7 +145,7 @@ func TestBrowseFetchFailurePropagates(t *testing.T) {
 func TestBrowsePrefersTheDerivativeOverOriginalAndTheora(t *testing.T) {
 	a := testArchive(t)
 
-	entries, err := a.Browse(context.Background(), itemIdeal)
+	entries, err := a.entries(context.Background(), itemIdeal)
 	if err != nil {
 		t.Fatalf("Browse: %v", err)
 	}
@@ -197,7 +172,7 @@ func TestBrowsePrefersTheDerivativeOverOriginalAndTheora(t *testing.T) {
 func TestBrowseGroupsPassthroughDerivativeWithItsOriginal(t *testing.T) {
 	a := testArchive(t)
 
-	entries, err := a.Browse(context.Background(), itemPartial)
+	entries, err := a.entries(context.Background(), itemPartial)
 	if err != nil {
 		t.Fatalf("Browse: %v", err)
 	}
@@ -228,7 +203,7 @@ func TestBrowseGroupsPassthroughDerivativeWithItsOriginal(t *testing.T) {
 func TestResolveBuildsDirectNodeURL(t *testing.T) {
 	a := testArchive(t)
 
-	stream, err := a.Resolve(context.Background(), itemIdeal+"/A Coy Decoy.mp4")
+	stream, err := a.resolve(context.Background(), itemIdeal+"/A Coy Decoy.mp4")
 	if err != nil {
 		t.Fatalf("Resolve: %v", err)
 	}
@@ -256,7 +231,7 @@ func TestResolveRefusesUndecodableFile(t *testing.T) {
 	a := testArchive(t)
 
 	// A real 1.5 Mbps passthrough from the partial item.
-	_, err := a.Resolve(context.Background(), itemPartial+"/All Together (1942).mp4")
+	_, err := a.resolve(context.Background(), itemPartial+"/All Together (1942).mp4")
 	if err == nil {
 		t.Fatal("resolving a file over the bitrate limit should fail")
 	}
@@ -281,7 +256,7 @@ func TestResolveRejectsUnknownInputs(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			if _, err := a.Resolve(context.Background(), tc.id); err == nil {
+			if _, err := a.resolve(context.Background(), tc.id); err == nil {
 				t.Fatalf("Resolve(%q) should fail", tc.id)
 			}
 		})

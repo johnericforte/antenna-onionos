@@ -1,6 +1,10 @@
 package config
 
-import "testing"
+import (
+	"testing"
+
+	"antenna/internal/provider"
+)
 
 func TestShippedItemsFileParses(t *testing.T) {
 	items, err := Load("../../App/Antenna/items.txt")
@@ -11,6 +15,11 @@ func TestShippedItemsFileParses(t *testing.T) {
 		t.Fatalf("got %d items, want 3", len(items))
 	}
 	for _, it := range items {
-		t.Logf("%s -> %q", it.ID, it.Title)
+		if it.Kind != provider.ArchiveItem {
+			t.Errorf("%s parsed as %v, want an archive item", it.Ref, it.Kind)
+		}
+	}
+	for _, it := range items {
+		t.Logf("%s -> %q", it.Ref, it.Title)
 	}
 }

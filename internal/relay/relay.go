@@ -152,6 +152,14 @@ func (r *Relay) serve(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set(name, v)
 		}
 	}
+
+	// The player treats an unplayable stream as a finished one, so an upstream
+	// failure has to be recorded here or the video simply does not happen and
+	// nothing says why.
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		r.setErr(fmt.Errorf("%s returned %s", r.target, resp.Status))
+		dbg.Fail("relay: %s returned %s", r.target, resp.Status)
+	}
 	w.WriteHeader(resp.StatusCode)
 
 	if req.Method == http.MethodHead {
@@ -159,6 +167,11 @@ func (r *Relay) serve(w http.ResponseWriter, req *http.Request) {
 	}
 
 	written, err := io.Copy(w, resp.Body)
+	if err == nil && written == 0 && resp.StatusCode/100 == 2 {
+		// A URL that answers 200 with nothing is a dead link that looks alive.
+		r.setErr(fmt.Errorf("%s returned no video", r.target))
+		dbg.Fail("relay: %s returned an empty body", r.target)
+	}
 	if err != nil {
 		// The player closing the connection mid-video is how quitting looks
 		// from here, so it is not worth recording as a failure.

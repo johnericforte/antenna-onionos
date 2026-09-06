@@ -30,6 +30,11 @@ func Init() bool {
 // On reports whether tracing is enabled.
 func On() bool { return enabled }
 
+// SetEnabled turns tracing on or off while the app is running, which is what
+// the settings screen changes. Without it, switching the trace on would mean
+// pulling the card to create a file and putting it back.
+func SetEnabled(on bool) { enabled = on }
+
 // Printf records one step. It costs a function call and an env lookup that
 // already happened when tracing is off.
 func Printf(format string, args ...any) {

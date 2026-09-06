@@ -173,3 +173,48 @@ func TestIsClientGone(t *testing.T) {
 		t.Error("an origin failure was mistaken for the player quitting")
 	}
 }
+
+// ffplay treats an unplayable stream as a finished one, so an upstream failure
+// has to be recorded here or the video simply does not happen and the app has
+// nothing to say about it.
+func TestRelayRecordsAnUpstreamFailure(t *testing.T) {
+	src := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "gone", http.StatusNotFound)
+	}))
+	defer src.Close()
+
+	r := startRelay(t, src.URL+"/v.mp4")
+	resp, err := http.Get(r.URL())
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	_ = resp.Body.Close()
+
+	if r.Err() == nil {
+		t.Fatal("a 404 from the origin was not recorded")
+	}
+	if !strings.Contains(r.Err().Error(), "404") {
+		t.Errorf("recorded %v, want the status", r.Err())
+	}
+}
+
+// A URL that answers 200 with nothing is a dead link that looks alive.
+func TestRelayRecordsAnEmptyBody(t *testing.T) {
+	src := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "video/mp4")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer src.Close()
+
+	r := startRelay(t, src.URL+"/v.mp4")
+	resp, err := http.Get(r.URL())
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	_, _ = io.Copy(io.Discard, resp.Body)
+	_ = resp.Body.Close()
+
+	if r.Err() == nil {
+		t.Fatal("an empty body was treated as a played video")
+	}
+}

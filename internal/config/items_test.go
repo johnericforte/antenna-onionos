@@ -1,6 +1,7 @@
 package config
 
 import (
+	"antenna/internal/provider"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,17 +34,17 @@ bare_identifier
 		t.Fatalf("got %d items, want 4", len(items))
 	}
 
-	if items[0].ID != "classic_cartoons_201603" || items[0].Title != "Classic Cartoons" {
+	if items[0].Ref != "classic_cartoons_201603" || items[0].Title != "Classic Cartoons" {
 		t.Errorf("first item is %+v", items[0])
 	}
 	// No name given, so the identifier is the name.
-	if items[1].ID != "pdcartooncollection" || items[1].Title != "pdcartooncollection" {
+	if items[1].Ref != "pdcartooncollection" || items[1].Title != "pdcartooncollection" {
 		t.Errorf("second item is %+v", items[1])
 	}
 	if items[2].Title != "Disney Public Domain" {
 		t.Errorf("surrounding space was not trimmed: %+v", items[2])
 	}
-	if items[3].ID != "bare_identifier" {
+	if items[3].Ref != "bare_identifier" {
 		t.Errorf("fourth item is %+v", items[3])
 	}
 }
@@ -58,8 +59,8 @@ func TestLoadKeepsFileOrder(t *testing.T) {
 
 	want := []string{"third_one", "first_one", "second_one"}
 	for i, id := range want {
-		if items[i].ID != id {
-			t.Errorf("item %d is %q, want %q", i, items[i].ID, id)
+		if items[i].Ref != id {
+			t.Errorf("item %d is %q, want %q", i, items[i].Ref, id)
 		}
 	}
 }
@@ -82,7 +83,6 @@ func TestLoadRejectsABadIdentifier(t *testing.T) {
 	tests := map[string]string{
 		"a slash would change the URL fetched": "some/item\n",
 		"a query string is not an identifier":  "item?raw=1\n",
-		"a full URL is not an identifier":      "https://archive.org/details/item\n",
 	}
 
 	for name, contents := range tests {
@@ -116,7 +116,7 @@ func TestLoadIgnoresCommentsAndBlankLines(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if len(items) != 1 || items[0].ID != "real_item" {
+	if len(items) != 1 || items[0].Ref != "real_item" {
 		t.Fatalf("got %+v, want one real item", items)
 	}
 }
@@ -130,5 +130,72 @@ func TestLoadOnAnEmptyFileReturnsNothing(t *testing.T) {
 	}
 	if len(items) != 0 {
 		t.Errorf("got %+v, want nothing", items)
+	}
+}
+
+// The whole point of Phase A: a source that is not archive.org is one line in
+// a text file, not a code change.
+func TestLoadReadsTheThreeLineShapes(t *testing.T) {
+	items, err := Load(write(t, `classic_cartoons_201603 Classic Cartoons
+https://example.org/films/short.mp4 A Short Film
+https://example.org/lists/mine.m3u My List
+https://example.org/lists/plain.txt Plain List
+https://example.org/films/nameless.mp4
+`))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if len(items) != 5 {
+		t.Fatalf("got %d items, want 5", len(items))
+	}
+
+	want := []struct {
+		kind  provider.SourceKind
+		ref   string
+		title string
+	}{
+		{provider.ArchiveItem, "classic_cartoons_201603", "Classic Cartoons"},
+		{provider.DirectVideo, "https://example.org/films/short.mp4", "A Short Film"},
+		{provider.PlaylistFile, "https://example.org/lists/mine.m3u", "My List"},
+		{provider.PlaylistFile, "https://example.org/lists/plain.txt", "Plain List"},
+		// No name given, so the file name stands in. A bare URL fills the
+		// screen and says nothing.
+		{provider.DirectVideo, "https://example.org/films/nameless.mp4", "nameless"},
+	}
+	for i, w := range want {
+		got := items[i]
+		if got.Kind != w.kind || got.Ref != w.ref || got.Title != w.title {
+			t.Errorf("item %d is %+v, want kind %v ref %q title %q", i, got, w.kind, w.ref, w.title)
+		}
+	}
+}
+
+func TestLoadRejectsAUnusableURL(t *testing.T) {
+	tests := map[string]string{
+		"a scheme this app cannot fetch": "ftp://example.org/film.mp4\n",
+		"a file path is not a source":    "file:///mnt/SDCARD/film.mp4\n",
+		"a URL with no host":             "https:///film.mp4\n",
+	}
+
+	for name, contents := range tests {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Load(write(t, contents)); err == nil {
+				t.Fatal("the line was accepted")
+			}
+		})
+	}
+}
+
+// An m3u8 is HLS. Its playlist lists seconds of video rather than titles, and
+// the device cannot play HLS at all, so expanding one would fill the list with
+// hundreds of unplayable fragments. It stays a single source, which the device
+// gate then refuses with a reason the user can read.
+func TestLoadReadsM3U8AsASingleSourceNotAPlaylist(t *testing.T) {
+	items, err := Load(write(t, "https://example.org/live.m3u8 Stream\n"))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if items[0].Kind != provider.DirectVideo {
+		t.Errorf("kind is %v, want a single source", items[0].Kind)
 	}
 }

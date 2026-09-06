@@ -11,7 +11,10 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
+	"path"
+	"slices"
 	"strings"
 
 	"antenna/internal/provider"
@@ -62,33 +65,91 @@ func Load(path string) ([]provider.Item, error) {
 	return items, nil
 }
 
-// parseLine reads one entry: the archive.org identifier, then optionally a
-// name to show instead of it. Blank lines and comments are skipped.
+// playlistExtensions mark a URL as a list of videos rather than one video.
 //
-//	classic_cartoons_201603 Classic Cartoons
+// .m3u8 is deliberately absent. It is HLS, whose playlists list a few seconds
+// of video each rather than whole titles, and this device cannot play HLS at
+// all. Expanding one would fill the list with hundreds of unplayable segments.
+// Left as a single source, it reaches the gate and is refused with a reason.
+var playlistExtensions = []string{".m3u", ".txt"}
+
+// parseLine reads one source: a reference, then optionally a name to show
+// instead of it. Blank lines and comments are skipped.
+//
+// The shape of the reference decides how it is read, which is what makes a non
+// archive.org source a one line change rather than a code change.
+//
+//	classic_cartoons_201603 Classic Cartoons     an archive.org item
+//	https://example.org/film.mp4 A Film          one video
+//	https://example.org/list.m3u My List         a playlist of videos
 //	# a comment
-//	pdcartooncollection
 func parseLine(raw string) (provider.Item, bool, error) {
 	line := strings.TrimSpace(raw)
 	if line == "" || strings.HasPrefix(line, "#") {
 		return provider.Item{}, false, nil
 	}
 
-	id, title, _ := strings.Cut(line, " ")
+	ref, title, _ := strings.Cut(line, " ")
 	title = strings.TrimSpace(title)
 
-	if err := validID(id); err != nil {
+	kind, err := kindOf(ref)
+	if err != nil {
 		return provider.Item{}, false, err
 	}
 	if title == "" {
-		title = id
+		title = defaultTitle(kind, ref)
 	}
-	return provider.Item{ID: id, Title: title}, true, nil
+	return provider.Item{Kind: kind, Ref: ref, Title: title}, true, nil
+}
+
+// kindOf decides how a reference is read, and rejects anything that is neither
+// an identifier nor a usable URL.
+func kindOf(ref string) (provider.SourceKind, error) {
+	if !strings.Contains(ref, "://") {
+		return provider.ArchiveItem, validID(ref)
+	}
+
+	parsed, err := url.Parse(ref)
+	if err != nil {
+		return 0, fmt.Errorf("%q is not a URL: %w", ref, err)
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return 0, fmt.Errorf("%q is not an http or https URL", ref)
+	}
+	if parsed.Host == "" {
+		return 0, fmt.Errorf("%q has no host", ref)
+	}
+
+	ext := strings.ToLower(path.Ext(parsed.Path))
+	if slices.Contains(playlistExtensions, ext) {
+		return provider.PlaylistFile, nil
+	}
+	return provider.DirectVideo, nil
+}
+
+// defaultTitle is what shows when a line gives no name. A bare URL fills the
+// screen and tells the user nothing, so the file name is used instead.
+func defaultTitle(kind provider.SourceKind, ref string) string {
+	if kind == provider.ArchiveItem {
+		return ref
+	}
+	if parsed, err := url.Parse(ref); err == nil {
+		if base := path.Base(parsed.Path); base != "" && base != "/" && base != "." {
+			if name := strings.TrimSuffix(base, path.Ext(base)); name != "" {
+				return name
+			}
+		}
+		if parsed.Host != "" {
+			return parsed.Host
+		}
+	}
+	return ref
 }
 
 // validID rejects anything that is not an archive.org identifier. A slash
 // would change which URL is fetched, and the rest are simply not identifiers,
-// so catching them here turns a silent empty list into a stated reason.
+// so catching them here turns a silent empty list into a stated reason. A
+// reference containing "://" never reaches this: it is read as a URL.
 func validID(id string) error {
 	if id == "" {
 		return errors.New("no identifier")

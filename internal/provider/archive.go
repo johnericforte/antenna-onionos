@@ -32,54 +32,32 @@ const requestTimeout = 15 * time.Second
 // thousands of files exist, and the device has very little RAM.
 const maxResponseBytes = 8 << 20
 
-// Item is one archive.org item wired into the browse root. An item is a folder
-// of videos, not a single video, so this is what the top level lists.
-type Item struct {
-	ID    string
-	Title string
-}
-
-// Archive browses the Internet Archive. It is deliberately ignorant of what
-// the items contain: the curated list is passed in, and nothing here knows or
-// cares that the shipped default is cartoons.
-type Archive struct {
-	items []Item
-
+// archive reads the Internet Archive metadata API. It is not a Provider on its
+// own: Sources owns the interface and hands archive identifiers here, because
+// which API answers a source is decided by the shape of its line in the item
+// list, not by the user picking a provider.
+type archive struct {
 	// fetch returns the raw metadata document for one item. It is a field so
 	// tests can serve fixtures without opening a socket.
 	fetch func(ctx context.Context, itemID string) ([]byte, error)
 }
 
-// NewArchive returns a provider over the given items, in the order supplied.
-func NewArchive(items []Item) *Archive {
-	client := &http.Client{Timeout: requestTimeout}
-	return &Archive{
-		items: items,
+// newArchive returns a client backed by the live metadata API.
+func newArchive(client *http.Client) *archive {
+	return &archive{
 		fetch: func(ctx context.Context, itemID string) ([]byte, error) {
 			return fetchMetadata(ctx, client, itemID)
 		},
 	}
 }
 
-// Name implements Provider.
-func (a *Archive) Name() string { return "Internet Archive" }
-
-// Browse implements Provider. An empty path lists the curated items; any other
-// path is an item identifier and lists the playable titles inside it.
+// entries lists the playable titles inside one item.
 //
 // Titles the device cannot decode are omitted rather than shown and refused.
 // An item whose every title is undecodable browses as an empty list, which is
 // a real and fairly common outcome: whole collections exist with no usable
 // derivative on any title.
-func (a *Archive) Browse(ctx context.Context, path string) ([]Entry, error) {
-	if path == "" {
-		entries := make([]Entry, 0, len(a.items))
-		for _, item := range a.items {
-			entries = append(entries, Entry{ID: item.ID, Title: item.Title, IsFolder: true})
-		}
-		return entries, nil
-	}
-
+func (a *archive) entries(ctx context.Context, path string) ([]Entry, error) {
 	titles, err := a.titles(ctx, path)
 	if err != nil {
 		return nil, err
@@ -98,9 +76,9 @@ func (a *Archive) Browse(ctx context.Context, path string) ([]Entry, error) {
 	return entries, nil
 }
 
-// Resolve implements Provider. The id is the item identifier and the chosen
-// file name joined by a slash, as produced by Browse.
-func (a *Archive) Resolve(ctx context.Context, id string) (*Stream, error) {
+// resolve turns an entry id back into a stream. The id is the item identifier
+// and the chosen file name joined by a slash, as produced by entries.
+func (a *archive) resolve(ctx context.Context, id string) (*Stream, error) {
 	itemID, fileName, ok := strings.Cut(id, "/")
 	if !ok || itemID == "" || fileName == "" {
 		return nil, fmt.Errorf("malformed entry id %q", id)
@@ -158,7 +136,7 @@ func (t *title) best() (*Stream, string) {
 
 // titles groups an item's files by the video they are a rendition of, sorted
 // by display name so the list does not reshuffle between runs.
-func (a *Archive) titles(ctx context.Context, itemID string) ([]*title, error) {
+func (a *archive) titles(ctx context.Context, itemID string) ([]*title, error) {
 	doc, err := a.document(ctx, itemID)
 	if err != nil {
 		return nil, err
@@ -209,7 +187,7 @@ func (a *Archive) titles(ctx context.Context, itemID string) ([]*title, error) {
 // nothing worth playing. Those two look identical from the outside and they
 // send whoever is debugging in opposite directions, so they are separated
 // here.
-func (a *Archive) document(ctx context.Context, itemID string) (*metadataDoc, error) {
+func (a *archive) document(ctx context.Context, itemID string) (*metadataDoc, error) {
 	body, err := a.fetch(ctx, itemID)
 	if err != nil {
 		return nil, err

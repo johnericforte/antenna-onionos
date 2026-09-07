@@ -27,6 +27,7 @@ go.work.sum
 *~
 
 # OS
+*:Zone.Identifier
 .DS_Store
 .AppleDouble
 Thumbs.db

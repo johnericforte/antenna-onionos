@@ -3,7 +3,9 @@
 [![ci](https://github.com/johnericforte/antenna-onionos/actions/workflows/ci.yml/badge.svg)](https://github.com/johnericforte/antenna-onionos/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Antenna is a streaming video app for the Miyoo Mini Plus running OnionOS. It pulls video over WiFi from the Internet Archive, so the only thing that lands on your SD card is the app.
+Antenna is a streaming video app for the Miyoo Mini Plus running OnionOS. You point it at what you want to watch and it pulls the video over WiFi, so the only thing that lands on your SD card is the app.
+
+**Still being built.** It plays video on real hardware, and the parts described below work, but this is active development rather than a finished thing. Expect rough edges, and expect some of it to change.
 
 ## Install on OnionOS
 
